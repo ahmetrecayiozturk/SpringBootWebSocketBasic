@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>STOMP WebSocket Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+</head>
+<body>
+  <h2>STOMP WebSocket Tester</h2>
+  <label>WebSocket URL:</label>
+  <input id="wsurl" value="ws://localhost:8080/ws" size="40">
+  <button onclick="connect()">Connect</button><br><br>
+  <label>Subscribe to topic:</label>
+  <input id="topic" value="/topic/messages" size="30">
+  <button onclick="subscribe()">Subscribe</button><br><br>
+  <label>Send destination:</label>
+  <input id="sendto" value="/app/sendMessage" size="30">
+  <label>Message JSON:</label>
+  <input id="msg" value='{"content":"merhaba","senderName":"ahmet"}' size="50">
+  <button onclick="sendmsg()">Send</button>
+  <hr>
+  <pre id="log" style="background:#222;color:#eee;padding:10px;height:250px;overflow:auto;"></pre>
+  <script>
+    let client;
+    function log(msg) {
+      document.getElementById('log').textContent += msg + '\n';
+    }
+    function connect() {
+      document.getElementById('log').textContent = "";
+      client = new StompJs.Client({ brokerURL: document.getElementById('wsurl').value });
+      client.onConnect = function() { log('Connected!'); };
+      client.onStompError = function(frame) { log('STOMP error: '+frame.headers['message']); };
+      client.onWebSocketError = function(ev) { log('WebSocket error: '+ev); };
+      client.onDisconnect = function() { log('Disconnected.'); };
+      client.activate();
+    }
+    function subscribe() {
+      client.subscribe(document.getElementById('topic').value, function(m) {
+        log('Received: ' + m.body);
+      });
+      log('Subscribed to ' + document.getElementById('topic').value);
+    }
+    function sendmsg() {
+      client.publish({destination: document.getElementById('sendto').value, body: document.getElementById('msg').value});
+      log('Message sent!');
+    }
+  </script>
+</body>
+</html>
